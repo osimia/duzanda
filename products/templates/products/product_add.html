@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block content %}
+<div class="max-w-lg mx-auto bg-white shadow-md rounded-lg p-8 mt-8">
+  <h1 class="text-2xl font-bold mb-6 text-blue-600">{% if edit_mode %}Редактировать товар{% else %}Добавить товар{% endif %}</h1>
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    {% csrf_token %}
+    <div>
+      <label class="block mb-1 font-semibold text-gray-700">{{ form.category.label }}</label>
+      {{ form.category|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+    </div>
+    <div>
+      <label class="block mb-1 font-semibold text-gray-700">{{ form.name.label }}</label>
+      {{ form.name|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+    </div>
+    <div>
+      <label class="block mb-1 font-semibold text-gray-700">{{ form.description.label }}</label>
+      {{ form.description|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+    </div>
+    <div>
+      <label class="block mb-1 font-semibold text-gray-700">{{ form.price.label }}</label>
+      {{ form.price|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+    </div>
+    <div>
+      <label class="block mb-1 font-semibold text-gray-700">{{ form.size.label }}</label>
+      {{ form.size|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+    </div>
+    <div>
+      <label class="block mb-1 font-semibold text-gray-700">{{ form.stock.label }}</label>
+      {{ form.stock|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+    </div>
+    {% if not edit_mode %}
+    <div>
+      <label class="block mb-1 font-semibold text-gray-700">Фотографии</label>
+      <input type="file" name="images" multiple class="w-full border border-gray-300 rounded px-4 py-2" accept="image/*">
+      <p class="text-xs text-gray-500 mt-1">Можно выбрать несколько файлов</p>
+    </div>
+    {% endif %}
+    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-full hover:bg-blue-700 transition">{% if edit_mode %}Сохранить{% else %}Добавить{% endif %}</button>
+  </form>
+</div>
+{% endblock %}

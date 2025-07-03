@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}Duzanda — маркетплейс{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Подключаем Tailwind билд -->
+  <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
+
+  <!-- Шрифт в стиле OZON -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
+
+  <!-- Header OZON style -->
+  <header class="bg-white shadow-sm px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <!-- Логотип и Каталог -->
+    <div class="flex items-center gap-4">
+      <a href="/" class="text-3xl font-extrabold text-blue-600">DUZANDA</a>
+      <a href="{% url 'products:product_list' %}"
+         class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-full hover:bg-blue-700 transition">
+        Каталог
+      </a>
+    </div>
+
+    <!-- Поиск -->
+    <form action="#" method="get" class="flex flex-1 max-w-3xl">
+      <select name="category"
+              class="border border-gray-300 rounded-l-full px-4 py-2 text-sm text-gray-600 focus:outline-none">
+        <option>Везде</option>
+        <!-- Можно вставить категории -->
+      </select>
+      <input type="text" placeholder="Поиск по Duzanda"
+             class="flex-1 border-t border-b border-gray-300 px-4 py-2 text-sm focus:outline-none">
+      <button type="submit" class="bg-blue-600 text-white px-4 rounded-r-full">
+        🔍
+      </button>
+    </form>
+
+    <!-- User навигация -->
+    <div class="flex items-center gap-6 text-sm">
+      {% if user.is_authenticated %}
+        {% if user.role == "master" %}
+          <a href="{% url 'products:my_products' %}" class="hover:underline">Мои товары</a>
+        {% endif %}
+        <a href="{% url 'orders:my_orders' %}" class="hover:underline">Заказы</a>
+        <a href="{% url 'cart:view_cart' %}" class="hover:underline">Корзина</a>
+        <a href="{% url 'accounts:profile' %}" class="hover:underline">Профиль</a>
+        <a href="{% url 'account_logout' %}" class="hover:underline text-red-600">Выйти</a>
+      {% else %}
+        <a href="{% url 'account_login' %}" class="hover:underline">Войти</a>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- Сообщения -->
+  {% if messages %}
+    <div class="container mx-auto p-4">
+      {% for message in messages %}
+        <div class="mb-2 p-3 rounded text-white 
+          {% if message.tags == 'error' %}bg-red-500
+          {% elif message.tags == 'success' %}bg-green-500
+          {% else %}bg-blue-500{% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Основной контент -->
+  <main class="flex-1 container mx-auto px-4 py-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Футер -->
+  <footer class="bg-gray-100 border-t p-4 text-center text-xs text-gray-500">
+    &copy; {{ now|date:"Y" }} Duzanda. Все права защищены.
+  </footer>
+
+</body>
+</html>

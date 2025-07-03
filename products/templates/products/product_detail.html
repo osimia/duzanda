@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .mini-thumb {
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    margin-bottom: 8px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .mini-thumb.active-thumb, .mini-thumb:hover {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px #2563eb33;
+  }
+  .main-photo {
+    width: 260px;
+    height: 320px;
+    object-fit: contain;
+    border-radius: 1rem;
+    background: #f3f4f6;
+    box-shadow: 0 4px 24px 0 #e0e7ef;
+    margin: 0 auto;
+    display: block;
+  }
+  .size-btn {
+    border: 1.5px solid #d1d5db;
+    background: #fff;
+    color: #222;
+    border-radius: 0.5rem;
+    padding: 0.3rem 1.1rem;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: default;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .size-btn.selected {
+    border-color: #2563eb;
+    background: #e0e7ff;
+    color: #2563eb;
+  }
+</style>
+<div class="max-w-5xl mx-auto bg-white p-6 md:p-10 rounded-2xl shadow-lg mt-6">
+  <div class="flex flex-col md:flex-row gap-8">
+    <!-- Галерея -->
+    <div class="flex md:flex-col flex-row md:w-1/12">
+      {% for img in product.images.all %}
+        <img src="{{ img.image.url }}" alt="" class="mini-thumb" onclick="showImage('{{ img.image.url }}', this)">
+      {% endfor %}
+    </div>
+    <!-- Фото товара -->
+    <div class="flex-1 flex flex-col items-center justify-center">
+      {% if product.images.first %}
+        <img id="mainProductImg" src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="main-photo mb-4">
+      {% else %}
+        <div class="main-photo flex items-center justify-center text-gray-400">Нет фото</div>
+      {% endif %}
+    </div>
+    <!-- Информация -->
+    <div class="w-full md:w-1/2 flex flex-col gap-4">
+      <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ product.name }}</h1>
+      <div class="flex items-center gap-2 mb-2">
+        {% if product.old_price and product.old_price > product.price %}
+          <span class="text-2xl font-bold text-gray-900">{{ product.price }} с.</span>
+          <span class="text-lg text-gray-400 line-through">{{ product.old_price }} с.</span>
+          <span class="text-red-600 text-base font-semibold bg-red-100 rounded px-2 py-0.5">-{{ product.discount_percent }}%</span>
+        {% else %}
+          <span class="text-2xl font-bold text-gray-900">{{ product.price }} с.</span>
+        {% endif %}
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+        <span>Категория:</span>
+        {% if product.category %}
+          <span class="font-medium text-gray-700">{{ product.category.name }}</span>
+        {% else %}
+          <span class="text-gray-400">Не указана</span>
+        {% endif %}
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+        <span>Продавец:</span>
+        <span class="font-medium text-gray-700">{{ product.master.get_full_name|default:product.master.username|default:"Мастер" }}</span>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-2">
+        <span>В наличии:</span>
+        <span class="font-medium text-gray-700">{{ product.stock }} шт.</span>
+      </div>
+      <div class="mb-2">
+        <span class="text-sm text-gray-500">Размер:</span>
+        {% if product.size %}
+          <span class="size-btn selected">{{ product.get_size_display }}</span>
+        {% else %}
+          <span class="size-btn">Не указан</span>
+        {% endif %}
+      </div>
+      <div class="mb-2 text-gray-700 text-base">{{ product.description }}</div>
+      <form method="post" action="{% url 'products:add_to_cart' product.pk %}" class="mt-2">
+        {% csrf_token %}
+        <button type="submit" class="w-full bg-blue-600 text-white text-lg font-semibold py-3 rounded-lg hover:bg-blue-700 transition">Добавить в корзину</button>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+  function showImage(url, el) {
+    const mainImg = document.getElementById('mainProductImg');
+    if (mainImg) mainImg.src = url;
+    document.querySelectorAll('.mini-thumb').forEach(img => img.classList.remove('active-thumb'));
+    el.classList.add('active-thumb');
+  }
+  window.addEventListener('DOMContentLoaded', () => {
+    const firstThumb = document.querySelector('.mini-thumb');
+    if (firstThumb) firstThumb.classList.add('active-thumb');
+  });
+</script>
+{% endblock %}
