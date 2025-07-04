@@ -90,8 +90,8 @@
       </div>
       <div class="mb-2">
         <span class="text-sm text-gray-500">Размеры:</span>
-        {% if product.sizes %}
-          {% for size in product.sizes|cut:',' %}
+        {% if sizes %}
+          {% for size in sizes %}
             <span class="size-btn selected">{{ size }}</span>
           {% endfor %}
         {% else %}
@@ -101,6 +101,15 @@
       <div class="mb-2 text-gray-700 text-base">{{ product.description }}</div>
       <form method="post" action="{% url 'products:add_to_cart' product.pk %}" class="mt-2">
         {% csrf_token %}
+        {% if sizes %}
+          <label for="size-select" class="block mb-2 text-sm text-gray-700">Выберите размер:</label>
+          <select name="size" id="size-select" required class="w-full border border-gray-300 rounded px-4 py-2 mb-4">
+            <option value="" disabled selected>Выберите размер</option>
+            {% for size in sizes %}
+              <option value="{{ size }}">{{ size }}</option>
+            {% endfor %}
+          </select>
+        {% endif %}
         <button type="submit" class="w-full bg-blue-600 text-white text-lg font-semibold py-3 rounded-lg hover:bg-blue-700 transition">Добавить в корзину</button>
       </form>
     </div>

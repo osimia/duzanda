@@ -14,8 +14,21 @@ def product_list(request):
     if category_id:
         products = products.filter(category_id=category_id)
 
+    # Для каждого товара формируем список уникальных размеров
+    products_with_sizes = []
+    for product in products:
+        sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
+        # Удаляем дубликаты, сохраняем порядок
+        unique_sizes = []
+        for s in sizes:
+            if s not in unique_sizes:
+                unique_sizes.append(s)
+        products_with_sizes.append({
+            'product': product,
+            'sizes': unique_sizes,
+        })
     context = {
-        'products': products,
+        'products_with_sizes': products_with_sizes,
         'categories': categories,
         'selected_category': int(category_id) if category_id else None,
     }
@@ -23,14 +36,21 @@ def product_list(request):
 
 def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
-    return render(request, 'products/product_detail.html', {'product': product})
+    sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
+    return render(request, 'products/product_detail.html', {'product': product, 'sizes': sizes})
 
 @login_required
 def add_to_cart(request, pk):
     product = get_object_or_404(Product, pk=pk)
+    size = request.POST.get('size')
+    valid_sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
+    if product.sizes and size not in valid_sizes:
+        messages.error(request, 'Пожалуйста, выберите корректный размер.')
+        return redirect('products:product_detail', pk=pk)
     cart_item, created = CartItem.objects.get_or_create(
         buyer=request.user,
         product=product,
+        size=size,
     )
     if not created:
         cart_item.quantity += 1

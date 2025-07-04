@@ -6,7 +6,8 @@
   <h1 class="text-2xl font-bold mb-6">Каталог товаров</h1>
 
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-    {% for product in products %}
+    {% for item in products_with_sizes %}
+      {% with product=item.product sizes=item.sizes %}
       <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition flex flex-col">
         <!-- Фото -->
         {% if product.images.first %}
@@ -24,8 +25,8 @@
 
           <h2 class="text-base font-semibold mb-1">{{ product.name }}</h2>
           <div class="flex flex-wrap gap-1 mb-1">
-            {% if product.sizes %}
-              {% for size in product.sizes|cut:',' %}
+            {% if sizes %}
+              {% for size in sizes %}
                 <span class="inline-block border border-gray-300 rounded px-2 py-0.5 text-xs text-gray-700 bg-gray-50">{{ size }}</span>
               {% endfor %}
             {% else %}
@@ -46,6 +47,7 @@
           </form>
         </div>
       </div>
+      {% endwith %}
     {% empty %}
       <p>Нет товаров.</p>
     {% endfor %}

@@ -34,5 +34,9 @@ class ProductForm(forms.ModelForm):
 
     def clean_sizes(self):
         sizes = self.cleaned_data.get('sizes', [])
-        # Сохраняем как строку через запятую
-        return ','.join(sizes)
+        # Удаляем дубликаты и пустые значения
+        unique_sizes = []
+        for s in sizes:
+            if s and s not in unique_sizes:
+                unique_sizes.append(s)
+        return ','.join(unique_sizes)
