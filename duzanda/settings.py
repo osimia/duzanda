@@ -158,6 +158,22 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'theme', 'static'),
 ]
+STATIC_URL = '/static/'
+
+# Все собранные файлы будут сюда
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Папка исходников статики (Tailwind и прочее)
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'theme', 'static'),
+]
+
+# ⚡ Включи WhiteNoise для продакшн
+MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
