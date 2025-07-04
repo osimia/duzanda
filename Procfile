@@ -1,0 +1,1 @@
+web: gunicorn duzanda.wsgi
