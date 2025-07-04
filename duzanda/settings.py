@@ -187,4 +187,7 @@ NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# CSRF trusted origins for Railway production
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://duzanda-production.up.railway.app').split(',')
+
 
