@@ -34,7 +34,7 @@ class Product(models.Model):
         ("XXL", "XXL"),
         ("3XL", "3XL"),
     ]
-    size = models.CharField("Размер", max_length=10, choices=SIZES, default="M")
+    sizes = models.CharField("Доступные размеры", max_length=100, blank=True, help_text="Выберите один или несколько размеров через запятую (например: S,M,L)")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

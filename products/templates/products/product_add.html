@@ -22,8 +22,18 @@
       {{ form.price|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
     </div>
     <div>
-      <label class="block mb-1 font-semibold text-gray-700">{{ form.size.label }}</label>
-      {{ form.size|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+      <label class="block mb-1 font-semibold text-gray-700">{{ form.sizes.label }}</label>
+      <div class="flex flex-wrap gap-4">
+        {% for checkbox in form.sizes %}
+          <label class="inline-flex items-center space-x-2">
+            {{ checkbox.tag }}
+            <span>{{ checkbox.choice_label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      {% if form.sizes.help_text %}
+        <p class="text-xs text-gray-500 mt-1">{{ form.sizes.help_text }}</p>
+      {% endif %}
     </div>
     <div>
       <label class="block mb-1 font-semibold text-gray-700">{{ form.stock.label }}</label>

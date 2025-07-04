@@ -1,0 +1,30 @@
+<div class="relative inline-block text-left" id="categoryDropdownWrapper">
+  <button type="button" id="categoryDropdownBtn" class="bg-blue-600 text-white font-semibold px-4 py-2 rounded-full hover:bg-blue-700 transition flex items-center gap-2" aria-haspopup="true" aria-expanded="false">
+    <span>Каталог</span>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+  </button>
+  <div id="categoryDropdownMenu" class="origin-top-left absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 hidden">
+    <div class="py-1">
+      {% for category in categories %}
+        <a href="{% url 'products:product_list' %}?category={{ category.id }}" class="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition">{{ category.name }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const btn = document.getElementById('categoryDropdownBtn');
+    const menu = document.getElementById('categoryDropdownMenu');
+    if (btn && menu) {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        menu.classList.toggle('hidden');
+      });
+      document.addEventListener('click', function(e) {
+        if (!btn.contains(e.target) && !menu.contains(e.target)) {
+          menu.classList.add('hidden');
+        }
+      });
+    }
+  });
+</script>
