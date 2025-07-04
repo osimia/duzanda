@@ -22,8 +22,9 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Загрузка .env после определения BASE_DIR (убираем дублирование BASE_DIR)
-load_dotenv(os.path.join(BASE_DIR.parent, '.env'))
+
+# Если не хотите использовать .env, пропишите DATABASE_URL прямо здесь:
+DATABASE_URL = 'postgres://postgres:qkTkjkQANVmhNfzdBbUvFETYxfUSltFO@tramway.proxy.rlwy.net:58115/railway'
 
 
 # Quick-start development settings - unsuitable for production
@@ -110,7 +111,7 @@ TAILWIND_APP_NAME = 'theme'
 
 
 DATABASES = {
-    'default': dj_database_url.config(conn_max_age=600)
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
 }
 
 
