@@ -191,3 +191,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://duzanda-production.up.railway.app').split(',')
 
 
+# Email settings
