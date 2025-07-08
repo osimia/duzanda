@@ -1,1 +1,1 @@
-web: gunicorn duzanda.wsgi
+web: gunicorn duzanda.wsgi:application --log-file -
