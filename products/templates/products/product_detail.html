@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load product_extras %}
+{% load static %}
 {% block content %}
 <style>
   .mini-thumb {
@@ -49,13 +51,35 @@
     <!-- Галерея -->
     <div class="flex md:flex-col flex-row md:w-1/12">
       {% for img in product.images.all %}
-        <img src="{{ img.image.url }}" alt="" class="mini-thumb" onclick="showImage('{{ img.image.url }}', this)">
+        {% with img_url=img.get_direct_s3_url %}
+        <img src="{{ img_url }}" alt="" class="mini-thumb" 
+             onclick="showImage('{{ img_url }}', this)"
+             onerror="this.onerror=null; this.src='{% static 'images/no-image.svg' %}'; console.log('Gallery thumb failed to load:', this.src);">
+        {% endwith %}
       {% endfor %}
     </div>
     <!-- Фото товара -->
     <div class="flex-1 flex flex-col items-center justify-center">
       {% if product.images.first %}
-        <img id="mainProductImg" src="{{ product.images.first.image.url }}" alt="{{ product.name }}" class="main-photo mb-4">
+        {% with img_url=product.images.first.get_direct_s3_url %}
+        <img id="mainProductImg" src="{{ img_url }}" 
+             alt="{{ product.name }}" 
+             class="main-photo mb-4" 
+             onerror="this.onerror=null; this.src='{% static 'images/no-image.svg' %}'; console.log('Main image failed to load:', this.src);">
+        
+        {% if request.user.is_staff %}
+        <!-- Отладочная информация для администраторов - доступна только для персонала -->
+        <div class="text-xs text-left w-full mt-2 bg-gray-50 p-2 rounded">
+          <div class="mb-1">Direct URL: <a href="{{ img_url }}" target="_blank" class="text-blue-500">{{ img_url }}</a></div>
+          <div>Django URL: {{ product.images.first.image.url }}</div>
+          <div class="mt-1">
+            <a href="{% url 'products:check_s3_images' %}" target="_blank" class="text-xs text-blue-500 hover:underline">
+              Проверить изображения в S3
+            </a>
+          </div>
+        </div>
+        {% endif %}
+        {% endwith %}
       {% else %}
         <div class="main-photo flex items-center justify-center text-gray-400">Нет фото</div>
       {% endif %}
@@ -116,15 +140,49 @@
   </div>
 </div>
 <script>
-  function showImage(url, el) {
+// Функция для отображения выбранного изображения как основного
+function showImage(imageUrl, thumbElement) {
+  // Обновляем основное изображение
+  const mainImg = document.getElementById('mainProductImg');
+  
+  // Сохраняем текущий URL на случай ошибки
+  const originalSrc = mainImg.src;
+  
+  // Устанавливаем новый URL
+  mainImg.src = imageUrl;
+  
+  // Обработчик ошибки загрузки изображения
+  mainImg.onerror = function() {
+    console.error('Failed to load image:', imageUrl);
+    
+    // Устанавливаем заглушку
+    this.onerror = null;
+    this.src = "{% static 'images/no-image.svg' %}";
+  };
+  
+  // Удаляем класс active-thumb у всех миниатюр
+  const allThumbs = document.querySelectorAll('.mini-thumb');
+  allThumbs.forEach(thumb => thumb.classList.remove('active-thumb'));
+  
+  // Добавляем класс active-thumb для выбранной миниатюры
+  thumbElement.classList.add('active-thumb');
+}
+
+// Активируем первую миниатюру по умолчанию при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+  const firstThumb = document.querySelector('.mini-thumb');
+  if (firstThumb) {
+    firstThumb.classList.add('active-thumb');
+    
+    // Проверим загрузку основного изображения
     const mainImg = document.getElementById('mainProductImg');
-    if (mainImg) mainImg.src = url;
-    document.querySelectorAll('.mini-thumb').forEach(img => img.classList.remove('active-thumb'));
-    el.classList.add('active-thumb');
+    if (mainImg) {
+      // Добавляем обработчик события загрузки
+      mainImg.addEventListener('load', function() {
+        console.log('Main image loaded successfully');
+      });
+    }
   }
-  window.addEventListener('DOMContentLoaded', () => {
-    const firstThumb = document.querySelector('.mini-thumb');
-    if (firstThumb) firstThumb.classList.add('active-thumb');
-  });
+});
 </script>
 {% endblock %}

@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 {% load widget_tweaks %}
+{% load product_extras %}
 {% block content %}
 <div class="max-w-lg mx-auto bg-white shadow-md rounded-lg p-8 mt-8">
   <h1 class="text-2xl font-bold mb-6 text-blue-600">{% if edit_mode %}Редактировать товар{% else %}Добавить товар{% endif %}</h1>
   <form method="post" enctype="multipart/form-data" class="space-y-4">
     {% csrf_token %}
+    {{ formset.management_form }}
     <div>
       <label class="block mb-1 font-semibold text-gray-700">{{ form.category.label }}</label>
       {{ form.category|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
@@ -39,14 +41,104 @@
       <label class="block mb-1 font-semibold text-gray-700">{{ form.stock.label }}</label>
       {{ form.stock|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
     </div>
-    {% if not edit_mode %}
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Фотографии</label>
-      <input type="file" name="images" multiple class="w-full border border-gray-300 rounded px-4 py-2" accept="image/*">
-      <p class="text-xs text-gray-500 mt-1">Можно выбрать несколько файлов</p>
+
+    <!-- Формсет для изображений -->
+    <div class="border p-4 rounded-lg bg-gray-50">
+      <label class="block mb-1 font-semibold text-gray-700">Фотографии (загружаются напрямую в облако)</label>
+      
+      {% for image_form in formset.forms %}
+        <div class="mb-4 p-3 border border-gray-200 rounded-lg bg-white">
+          {% if image_form.instance.pk and image_form.instance.image %}
+            <div class="mb-2">
+              <img src="{{ image_form.instance.image|s3_image_url }}" alt="Предпросмотр" class="h-24 w-auto object-contain">
+            </div>
+          {% endif %}
+          
+          {{ image_form.id }}
+          {{ image_form.image|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+          
+          {% if image_form.instance.pk and formset.can_delete %}
+            <div class="mt-2">
+              {{ image_form.DELETE }} <label class="text-sm text-red-600">Удалить это изображение</label>
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      
+      <p class="text-xs text-gray-500 mt-1">Можно загрузить до {{ formset.max_num }} изображений</p>
+      <p class="text-xs text-red-500 mt-1">
+        <strong>Важно:</strong> Максимальный размер каждого файла: 5 МБ. 
+        Поддерживаемые форматы: JPG, PNG, WebP.
+      </p>
+      <p class="text-xs text-gray-500 mt-1">
+        Изображения загружаются напрямую в облачное хранилище. 
+        Загрузка может занять некоторое время, пожалуйста, дождитесь завершения.
+      </p>
     </div>
-    {% endif %}
-    <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-full hover:bg-blue-700 transition">{% if edit_mode %}Сохранить{% else %}Добавить{% endif %}</button>
+    <!-- Добавляем индикатор загрузки -->
+    <div id="upload-progress" class="hidden mt-4">
+      <p class="text-sm font-semibold text-blue-600 mb-1">Загрузка изображений...</p>
+      <div class="w-full bg-gray-200 rounded-full h-2.5">
+        <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+      </div>
+      <p id="upload-status" class="text-xs text-gray-500 mt-1">Подготовка к загрузке...</p>
+    </div>
+    
+    <button id="submit-button" type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-full hover:bg-blue-700 transition">{% if edit_mode %}Сохранить{% else %}Добавить{% endif %}</button>
   </form>
 </div>
+
+<!-- Добавляем JavaScript для обработки индикатора прогресса -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form');
+    const submitButton = document.getElementById('submit-button');
+    const progressBar = document.getElementById('progress-bar');
+    const uploadProgress = document.getElementById('upload-progress');
+    const uploadStatus = document.getElementById('upload-status');
+
+    form.addEventListener('submit', function(e) {
+      // Проверяем, есть ли файлы для загрузки
+      let hasFiles = false;
+      const fileInputs = document.querySelectorAll('input[type="file"]');
+      
+      fileInputs.forEach(input => {
+        if (input.files && input.files.length > 0) {
+          hasFiles = true;
+        }
+      });
+      
+      if (hasFiles) {
+        // Показываем индикатор загрузки
+        uploadProgress.classList.remove('hidden');
+        submitButton.disabled = true;
+        submitButton.classList.add('bg-gray-400');
+        submitButton.classList.remove('hover:bg-blue-700');
+        submitButton.textContent = 'Загрузка...';
+        
+        // Имитируем процесс загрузки
+        let progress = 0;
+        const interval = setInterval(function() {
+          // Увеличиваем прогресс
+          progress += Math.random() * 5;
+          
+          if (progress >= 100) {
+            clearInterval(interval);
+            progress = 100;
+            uploadStatus.textContent = 'Обработка завершена! Перенаправление...';
+          } else if (progress >= 80) {
+            uploadStatus.textContent = 'Финализация загрузки...';
+          } else if (progress >= 50) {
+            uploadStatus.textContent = 'Загрузка на сервер...';
+          } else if (progress >= 20) {
+            uploadStatus.textContent = 'Оптимизация изображений...';
+          }
+          
+          // Обновляем прогресс-бар
+          progressBar.style.width = progress + '%';
+        }, 500);
+      }
+    });
+  });
+</script>
 {% endblock %}

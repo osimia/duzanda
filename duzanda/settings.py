@@ -39,6 +39,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 
+# В settings.py
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000'
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -86,6 +91,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Локальные приложения
+    'storages',
     'accounts',
     'widget_tweaks',
     'products',
@@ -103,7 +109,10 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    
 ]
+
+
 
 
 TAILWIND_APP_NAME = 'theme'
@@ -184,6 +193,7 @@ AUTH_USER_MODEL = 'accounts.User'
 
 NPM_BIN_PATH = "C:/Program Files/nodejs/npm.cmd"
 
+# При локальной разработке и тестировании используем локальные медиа-файлы
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
@@ -191,4 +201,34 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://duzanda-production.up.railway.app').split(',')
 
 
-# Email settings
+# Настройки S3 Selectel
+AWS_ACCESS_KEY_ID = '415fa12c022c42a7b5f6ed4d7f59e5e5'  # Из панели Selectel
+AWS_SECRET_ACCESS_KEY = 'deffb7f08ac845799c1eca153a96cab2'  # Из панели Selectel
+AWS_STORAGE_BUCKET_NAME = 'duzanda'  # Имя созданного бакета
+AWS_S3_ENDPOINT_URL = 'https://s3.storage.selcloud.ru'  # Endpoint Selectel
+AWS_S3_REGION_NAME = 'ru-1'  # Или другой регион, если у вас не ru-1
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+AWS_DEFAULT_ACL = 'public-read'  # Все файлы публичные для доступа без авторизации
+AWS_QUERYSTRING_AUTH = False  # Отключаем query-параметры авторизации для чистых URL
+
+# Дополнительные настройки для работы с URL
+AWS_S3_CUSTOM_DOMAIN = None  # Не используем кастомный домен для корректной работы Selectel
+AWS_S3_URL_PROTOCOL = 'https'  # Явно указываем протокол https
+
+# Прямой URL Selectel (полученный из примера URL)
+SELECTEL_DIRECT_STORAGE_URL = 'https://8b0b75a0-d659-4da7-ae25-c18735213846.selstorage.ru'
+
+# Дополнительные настройки для стабильной работы с S3
+AWS_S3_ADDRESSING_STYLE = 'path'  # Использование path-стиля адресации для Selectel S3
+AWS_S3_VERIFY = True  # Проверять SSL-сертификаты
+AWS_S3_SECURE_URLS = True  # Использовать HTTPS
+AWS_S3_USE_SSL = True  # Использовать SSL для подключения
+AWS_S3_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # 5 MB - оптимальный размер для загрузки
+AWS_S3_FILE_OVERWRITE = False  # Не перезаписывать файлы с одинаковыми именами
+
+# Таймауты для S3
+AWS_S3_CONNECT_TIMEOUT = 60  # 60 секунд на установление соединения
+AWS_S3_READ_TIMEOUT = 60  # 60 секунд на чтение данных
+
+# Настройки хранения файлов
+DEFAULT_FILE_STORAGE = 'duzanda.storage_backends.MediaStorage'

@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load product_extras %}
+{% load static %}
 
 {% block content %}
 <div class="container mx-auto px-4">
@@ -11,12 +13,21 @@
       <div class="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition flex flex-col">
         <!-- Фото -->
         {% if product.images.first %}
-          <img src="{{ product.images.first.image.url }}"
+          {% with img_url=product.images.first.get_direct_s3_url %}
+          <img src="{{ img_url }}"
                alt="{{ product.name }}"
-               class="w-full h-48 object-cover rounded-t-lg">
+               class="w-full h-48 object-cover rounded-t-lg"
+               onerror="this.onerror=null; this.src='{% static 'images/no-image.svg' %}'; console.log('Image failed to load:', this.src);">
+          {% if request.user.is_staff %}
+          <!-- Отладочная информация для администраторов -->
+          <div class="p-1 text-xs bg-gray-100 text-gray-700">
+            <small>Direct URL: <a href="{{ img_url }}" target="_blank" class="text-blue-500 hover:underline">{{ img_url }}</a></small>
+          </div>
+          {% endif %}
+          {% endwith %}
         {% else %}
           <div class="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400">
-            Нет фото
+            <span>Нет фото</span>
           </div>
         {% endif %}
 

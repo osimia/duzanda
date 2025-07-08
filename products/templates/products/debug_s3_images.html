@@ -1,0 +1,109 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <h1>Диагностика изображений S3</h1>
+    <p>Проверка статуса изображений в Selectel S3</p>
+    
+    <div id="loading">Загрузка данных...</div>
+    
+    <div id="results" style="display:none;">
+        <div class="config-info">
+            <h2>Конфигурация S3</h2>
+            <div id="config"></div>
+        </div>
+        
+        <h2>Результаты проверки</h2>
+        <table id="images-table" border="1" cellpadding="5" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Продукт</th>
+                    <th>URL</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="error" style="display:none; color: red;"></div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('{% url "products:check_s3_images" %}')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка получения данных');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Скрываем загрузку
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+            
+            // Отображаем конфигурацию
+            const configInfo = `
+                <ul>
+                    <li>Bucket: ${data.bucket}</li>
+                    <li>S3 Endpoint: ${data.s3_endpoint}</li>
+                    <li>Direct Storage URL: ${data.direct_storage_url}</li>
+                    <li>Всего проверено: ${data.count}</li>
+                </ul>
+            `;
+            document.getElementById('config').innerHTML = configInfo;
+            
+            // Заполняем таблицу
+            const tbody = document.getElementById('images-table').getElementsByTagName('tbody')[0];
+            data.results.forEach(item => {
+                const row = tbody.insertRow();
+                
+                // ID
+                const cellId = row.insertCell();
+                cellId.textContent = item.image_id;
+                
+                // Продукт
+                const cellProduct = row.insertCell();
+                cellProduct.textContent = `${item.product_name} (ID: ${item.product_id})`;
+                
+                // URL
+                const cellUrl = row.insertCell();
+                const urlLink = document.createElement('a');
+                urlLink.href = item.direct_url;
+                urlLink.textContent = item.image_name;
+                urlLink.target = '_blank';
+                cellUrl.appendChild(urlLink);
+                
+                // Статус
+                const cellStatus = row.insertCell();
+                if (item.error) {
+                    cellStatus.textContent = `ОШИБКА: ${item.error}`;
+                    cellStatus.style.color = 'red';
+                } else {
+                    cellStatus.textContent = item.exists ? 'Доступен' : 'Недоступен';
+                    cellStatus.style.color = item.exists ? 'green' : 'red';
+                }
+                
+                // Действия
+                const cellActions = row.insertCell();
+                const viewBtn = document.createElement('button');
+                viewBtn.textContent = 'Просмотреть';
+                viewBtn.onclick = function() {
+                    window.open(item.direct_url, '_blank');
+                };
+                cellActions.appendChild(viewBtn);
+            });
+        })
+        .catch(error => {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').textContent = 'Ошибка: ' + error.message;
+            document.getElementById('error').style.display = 'block';
+        });
+});
+</script>
+{% endblock %}

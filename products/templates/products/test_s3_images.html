@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Тестирование S3 изображений{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold mb-8">Тестирование S3 изображений</h1>
+  
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold mb-4">Проверка изображения по URL</h2>
+    <div class="flex items-center gap-4 mb-4">
+      <input type="text" id="imageUrlInput" placeholder="Введите URL изображения" 
+             class="border border-gray-300 rounded px-4 py-2 flex-1">
+      <button id="testImageBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Проверить
+      </button>
+    </div>
+    
+    <div id="imageResult" class="p-4 bg-gray-50 rounded-lg">
+      <h3 class="font-medium mb-2">Результат:</h3>
+      <div id="imageStatus" class="mb-4">Нет данных</div>
+      <img id="testImage" src="" alt="Тест изображения" class="h-64 object-contain bg-white border border-gray-200 p-2 rounded hidden">
+    </div>
+  </div>
+  
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold mb-4">Информация о Selectel S3</h2>
+    <div class="p-4 bg-gray-50 rounded-lg">
+      <div><strong>SELECTEL_DIRECT_STORAGE_URL:</strong> {{ selectel_direct_storage_url }}</div>
+      <div><strong>AWS_STORAGE_BUCKET_NAME:</strong> {{ bucket_name }}</div>
+      <div><strong>AWS_S3_ENDPOINT_URL:</strong> {{ endpoint_url }}</div>
+    </div>
+  </div>
+  
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold mb-4">Тест заглушки изображения</h2>
+    <div class="flex flex-wrap gap-4">
+      <div>
+        <h3 class="text-sm mb-2">SVG заглушка</h3>
+        <img src="{% static 'images/no-image.svg' %}" alt="SVG заглушка" class="h-32 w-32 border border-gray-200">
+      </div>
+      <div>
+        <h3 class="text-sm mb-2">PNG заглушка</h3>
+        <img src="{% static 'images/no-image.png' %}" alt="PNG заглушка" class="h-32 w-32 border border-gray-200">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const testImageBtn = document.getElementById('testImageBtn');
+  const imageUrlInput = document.getElementById('imageUrlInput');
+  const imageStatus = document.getElementById('imageStatus');
+  const testImage = document.getElementById('testImage');
+  
+  // URL из параметра запроса
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlParam = urlParams.get('url');
+  if (urlParam) {
+    imageUrlInput.value = urlParam;
+    testImage.onload = function() {
+      testImage.classList.remove('hidden');
+      imageStatus.innerHTML = '<span class="text-green-600">✓ Изображение успешно загружено</span>';
+    };
+    testImage.onerror = function() {
+      imageStatus.innerHTML = '<span class="text-red-600">✗ Ошибка загрузки изображения</span>';
+      testImage.src = "{% static 'images/no-image.svg' %}";
+      testImage.classList.remove('hidden');
+    };
+    testImage.src = urlParam;
+  }
+  
+  testImageBtn.addEventListener('click', function() {
+    const url = imageUrlInput.value.trim();
+    if (!url) {
+      imageStatus.innerHTML = 'Введите URL изображения';
+      return;
+    }
+    
+    imageStatus.innerHTML = 'Проверка...';
+    testImage.classList.add('hidden');
+    
+    // Проверяем загрузку изображения
+    testImage.onload = function() {
+      testImage.classList.remove('hidden');
+      imageStatus.innerHTML = '<span class="text-green-600">✓ Изображение успешно загружено</span>';
+    };
+    testImage.onerror = function() {
+      imageStatus.innerHTML = '<span class="text-red-600">✗ Ошибка загрузки изображения</span>';
+      testImage.src = "{% static 'images/no-image.svg' %}";
+      testImage.classList.remove('hidden');
+    };
+    testImage.src = url;
+    
+    // Обновляем URL для возможности поделиться
+    const newUrl = new URL(window.location);
+    newUrl.searchParams.set('url', url);
+    window.history.pushState({}, '', newUrl);
+  });
+});
+</script>
+{% endblock %}

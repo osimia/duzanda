@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from .models import Product, Category, ProductImage
 from cart.models import CartItem
-from .forms import ProductForm
+from .forms import ProductForm, ProductImageForm, ProductImageFormSet
+from django.forms import modelformset_factory
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -61,33 +62,123 @@ def add_to_cart(request, pk):
 def product_add(request):
     if not hasattr(request.user, 'role') or request.user.role != 'master':
         return redirect('products:product_list')
+    
+    # Создаем формсет с меньшим количеством полей для уменьшения нагрузки
+    ImageFormSet = modelformset_factory(
+        ProductImage,
+        form=ProductImageForm,
+        extra=3,  # Уменьшаем количество пустых форм
+        max_num=5  # Уменьшаем максимальное количество форм для одновременной загрузки
+    )
+    
     if request.method == 'POST':
-        form = ProductForm(request.POST, request.FILES)
-        if form.is_valid():
-            product = form.save(commit=False)
-            product.master = request.user
-            product.save()
-            # Сохраняем фото
-            images = request.FILES.getlist('images')
-            for image in images:
-                ProductImage.objects.create(product=product, image=image)
-            return redirect('products:product_list')
+        try:
+            form = ProductForm(request.POST)
+            formset = ImageFormSet(request.POST, request.FILES, queryset=ProductImage.objects.none())
+            
+            # Проверяем валидность формы продукта отдельно от формсета
+            if form.is_valid():
+                # Сначала сохраняем продукт
+                product = form.save(commit=False)
+                product.master = request.user
+                product.save()
+                
+                # Показываем сообщение о сохранении продукта
+                messages.success(request, 'Товар успешно создан!')
+                
+                # Теперь обрабатываем изображения
+                if formset.is_valid():
+                    # Подсчитываем количество форм с изображениями
+                    image_forms_with_data = [f for f in formset if f.cleaned_data and 'image' in f.cleaned_data and f.cleaned_data['image']]
+                    total_images = len(image_forms_with_data)
+                    
+                    if total_images > 0:
+                        messages.info(request, f'Загрузка {total_images} изображений. Пожалуйста, подождите...')
+                    
+                    # Обрабатываем каждую форму в формсете с обработкой ошибок
+                    for i, image_form in enumerate(formset):
+                        # Пропускаем пустые формы
+                        if image_form.cleaned_data and 'image' in image_form.cleaned_data and image_form.cleaned_data['image']:
+                            try:
+                                # Сохраняем изображение, связывая его с продуктом
+                                image_form.save(product=product)
+                            except Exception as e:
+                                import traceback
+                                print(f"Ошибка при сохранении изображения {i+1}: {e}")
+                                traceback.print_exc()
+                                messages.error(request, f"Не удалось загрузить изображение {i+1}: {str(e)}")
+                
+                # Даже если загрузка изображений не удалась, продукт всё равно создан
+                return redirect('products:product_list')
+            else:
+                # Ошибки в форме продукта
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Ошибка в поле {field}: {error}")
+                
+        except Exception as e:
+            # Общая обработка непредвиденных ошибок
+            import traceback
+            print(f"Непредвиденная ошибка при создании товара: {e}")
+            traceback.print_exc()
+            messages.error(request, f"Произошла ошибка: {str(e)}")
     else:
         form = ProductForm()
-    return render(request, 'products/product_add.html', {'form': form})
+        formset = ImageFormSet(queryset=ProductImage.objects.none())
+        
+    return render(request, 'products/product_add.html', {
+        'form': form,
+        'formset': formset
+    })
 
 @login_required
 def product_edit(request, pk):
     product = get_object_or_404(Product, pk=pk, master=request.user)
+    
+    # Формируем формсет для существующих изображений продукта
+    ImageFormSet = modelformset_factory(
+        ProductImage,
+        form=ProductImageForm,
+        extra=3,
+        max_num=10,
+        can_delete=True
+    )
+    
     if request.method == 'POST':
         form = ProductForm(request.POST, instance=product)
-        if form.is_valid():
+        formset = ImageFormSet(
+            request.POST, 
+            request.FILES,
+            queryset=ProductImage.objects.filter(product=product)
+        )
+        
+        if form.is_valid() and formset.is_valid():
+            # Сохраняем основную информацию о продукте
             form.save()
+            
+            # Обрабатываем каждую форму в формсете
+            for image_form in formset:
+                if image_form.cleaned_data:
+                    # Обрабатываем удаление
+                    if image_form.cleaned_data.get('DELETE'):
+                        if image_form.instance.pk:
+                            image_form.instance.delete()
+                    elif 'image' in image_form.cleaned_data and image_form.cleaned_data['image']:
+                        # Сохраняем новое изображение
+                        image_form.save(product=product)
+            
             messages.success(request, 'Товар успешно обновлён!')
             return redirect('accounts:my_products')
     else:
         form = ProductForm(instance=product)
-    return render(request, 'products/product_add.html', {'form': form, 'edit_mode': True})
+        formset = ImageFormSet(queryset=ProductImage.objects.filter(product=product))
+        
+    return render(request, 'products/product_add.html', {
+        'form': form,
+        'formset': formset,
+        'edit_mode': True,
+        'product': product
+    })
 
 @login_required
 def product_delete(request, pk):
