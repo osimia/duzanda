@@ -40,23 +40,7 @@ def product_detail(request, pk):
     sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
     return render(request, 'products/product_detail.html', {'product': product, 'sizes': sizes})
 
-@login_required
-def add_to_cart(request, pk):
-    product = get_object_or_404(Product, pk=pk)
-    size = request.POST.get('size')
-    valid_sizes = [s.strip() for s in product.sizes.split(',') if s.strip()]
-    if product.sizes and size not in valid_sizes:
-        messages.error(request, 'Пожалуйста, выберите корректный размер.')
-        return redirect('products:product_detail', pk=pk)
-    cart_item, created = CartItem.objects.get_or_create(
-        buyer=request.user,
-        product=product,
-        size=size,
-    )
-    if not created:
-        cart_item.quantity += 1
-        cart_item.save()
-    return redirect('cart:view_cart')
+# Функция add_to_cart перемещена в cart/views.py для поддержки анонимных пользователей
 
 @login_required
 def product_add(request):

@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Модальное окно для входа по номеру телефона -->
+<div id="phoneLoginModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <!-- Затемнение фона -->
+    <div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+    
+    <!-- Модальное окно -->
+    <div class="bg-white rounded-lg max-w-md w-full mx-auto z-10 relative">
+      <div class="flex justify-between items-center border-b p-4">
+        <h2 class="text-xl font-semibold">Вход</h2>
+        <button type="button" class="text-gray-400 hover:text-gray-500" id="closeModal">
+          <span class="text-2xl">&times;</span>
+        </button>
+      </div>
+      
+      <div class="p-6">
+        <h3 class="text-lg font-medium mb-4">Введите номер телефона</h3>
+        
+        <form method="post" action="{% url 'accounts:login' %}">
+          {% csrf_token %}
+          <div class="mb-6">
+            <input type="tel" name="phone" id="phoneInput" 
+                  class="w-full border border-gray-300 rounded-lg p-3 text-lg" 
+                  placeholder="+992 __ __ __ __" 
+                  required>
+          </div>
+          
+          <button type="submit" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 rounded-lg transition">
+            Войти
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-6xl mx-auto">
+  <!-- Основной контейнер с фоном -->
+  <div class="bg-gray-50 rounded-lg p-6">
+    
+    <!-- Шапка профиля -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+      <div class="flex items-center">
+        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-3xl font-bold mr-4">
+          <span>👤</span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold">Профиль покупателя</h1>
+          <p class="text-gray-500">Войдите или зарегистрируйтесь</p>
+        </div>
+      </div>
+      <button class="open-login-modal bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition font-medium">
+        Войти
+      </button>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="border-b border-gray-200 mb-6">
+      <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+        <li class="mr-2">
+          <a href="#" class="inline-block p-4 border-b-2 border-blue-600 text-blue-600 rounded-t-lg active">Все заявки</a>
+        </li>
+        <li class="mr-2">
+          <a href="#" class="inline-block p-4 border-b-2 border-transparent hover:border-gray-300 hover:text-gray-600 rounded-t-lg">В процессе</a>
+        </li>
+        <li class="mr-2">
+          <a href="#" class="inline-block p-4 border-b-2 border-transparent hover:border-gray-300 hover:text-gray-600 rounded-t-lg">Успешные</a>
+        </li>
+        <li>
+          <a href="#" class="inline-block p-4 border-b-2 border-transparent hover:border-gray-300 hover:text-gray-600 rounded-t-lg">Отменено</a>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Основной контент -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Левая колонка -->
+      <div class="md:col-span-1">
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex flex-col items-center">
+            <div class="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 text-4xl mb-4">
+              �
+            </div>
+            <p class="text-xl font-bold mb-1">Гость</p>
+            <p class="text-gray-500 mb-6">Неавторизованный пользователь</p>
+            
+            <button class="open-login-modal w-full bg-blue-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-700 transition text-center mb-3">
+              Войти по телефону
+            </button>
+          </div>
+          
+          <div class="border-t mt-6 pt-6">
+            <ul class="space-y-3">
+              <li>
+                <a href="{% url 'cart:view_cart' %}" class="flex items-center text-gray-700 hover:text-blue-600 font-medium">
+                  <span class="mr-3 text-lg">🛒</span> Моя корзина
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'orders:find_orders' %}" class="flex items-center text-gray-700 hover:text-blue-600 font-medium">
+                  <span class="mr-3 text-lg">📦</span> Найти мои заказы
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'products:product_list' %}" class="flex items-center text-gray-700 hover:text-blue-600 font-medium">
+                  <span class="mr-3 text-lg">🏪</span> Каталог товаров
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Информация для неавторизованного пользователя -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h3 class="text-lg font-semibold mb-4">Возможности после авторизации</h3>
+          <ul class="space-y-3">
+            <li class="flex items-start">
+              <span class="text-green-500 mr-2">✓</span>
+              <p class="text-gray-700">Полная история ваших заказов</p>
+            </li>
+            <li class="flex items-start">
+              <span class="text-green-500 mr-2">✓</span>
+              <p class="text-gray-700">Отслеживание статуса заказов</p>
+            </li>
+            <li class="flex items-start">
+              <span class="text-green-500 mr-2">✓</span>
+              <p class="text-gray-700">Сохранение адресов доставки</p>
+            </li>
+            <li class="flex items-start">
+              <span class="text-green-500 mr-2">✓</span>
+              <p class="text-gray-700">Личные скидки и предложения</p>
+            </li>
+          </ul>
+        </div>
+      </div>
+          
+          <!-- Блок с подсказкой для авторизации -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-blue-800 mb-2">Хотите увидеть свои заказы?</h3>
+              <p class="text-blue-600">Войдите по номеру телефона, чтобы получить доступ к истории заказов</p>
+            </div>
+            <button class="open-login-modal bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition whitespace-nowrap">
+              Войти
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript для управления модальным окном -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Получение элементов
+    const modal = document.getElementById('phoneLoginModal');
+    const closeBtn = document.getElementById('closeModal');
+    const backdrop = document.getElementById('modalBackdrop');
+    const loginButtons = document.querySelectorAll('.open-login-modal');
+    
+    // Функция для открытия модального окна
+    function openModal() {
+      modal.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
+    }
+    
+    // Функция для закрытия модального окна
+    function closeModal() {
+      modal.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+    
+    // Открытие модального окна при нажатии на кнопки входа
+    loginButtons.forEach(button => {
+      button.addEventListener('click', function(e) {
+        e.preventDefault();
+        openModal();
+      });
+    });
+    
+    // Закрытие модального окна при нажатии на крестик
+    closeBtn.addEventListener('click', closeModal);
+    
+    // Закрытие модального окна при клике на фон
+    backdrop.addEventListener('click', closeModal);
+    
+    // Форматирование ввода телефона
+    const phoneInput = document.getElementById('phoneInput');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.startsWith('992')) {
+          // Форматируем как +992 XX XXX XX XX
+          if (value.length > 3) {
+            value = '+' + value.substring(0, 3) + ' ' + value.substring(3);
+          }
+          if (value.length > 7) {
+            value = value.substring(0, 7) + ' ' + value.substring(7);
+          }
+          if (value.length > 11) {
+            value = value.substring(0, 11) + ' ' + value.substring(11);
+          }
+          if (value.length > 14) {
+            value = value.substring(0, 14) + ' ' + value.substring(14, 16);
+          }
+        } else if (value) {
+          // Добавляем код страны, если пользователь его не ввёл
+          value = '+992' + value;
+        } else {
+          value = '+992 ';
+        }
+        
+        e.target.value = value;
+      });
+    }
+  });
+</script>
+{% endblock %}

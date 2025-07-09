@@ -7,6 +7,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    .phone-login-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .phone-login-modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 8px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      animation: modalFadeIn 0.3s;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+  </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
 
@@ -34,19 +63,17 @@
 
     <!-- Иконки -->
     <div class="flex items-center gap-6 text-sm">
+      <a href="{% url 'cart:view_cart' %}" class="flex items-center gap-1 hover:text-blue-600">
+        <span class="text-2xl">🛒</span> Корзина
+      </a>
       {% if user.is_authenticated %}
-        <a href="{% url 'cart:view_cart' %}" class="flex items-center gap-1 hover:text-blue-600">
-          <span class="text-2xl">🛒</span> Корзина
-        </a>
-        <a href="{% url 'accounts:profile' %}" class="flex items-center gap-1 hover:text-blue-600">
-          <span class="text-2xl">👤</span> Профиль
-        </a>
-        <a href="{% url 'accounts:logout' %}" class="flex items-center gap-1 hover:text-blue-600">
-          <span class="text-2xl">🚪</span> Выйти
-        </a>
+      <a href="{% url 'accounts:profile' %}" class="flex items-center gap-1 hover:text-blue-600">
+        <span class="text-2xl">👤</span> Профиль
+      </a>
       {% else %}
-        <a href="{% url 'accounts:login' %}">Войти</a>
-        <a href="{% url 'accounts:register' %}">Регистрация</a>
+      <a href="javascript:void(0)" id="openPhoneLoginModal" class="flex items-center gap-1 hover:text-blue-600">
+        <span class="text-2xl">👤</span> Профиль
+      </a>
       {% endif %}
     </div>
   </header>
@@ -61,5 +88,111 @@
     &copy; {{ now|date:"Y" }} Duzanda. Все права защищены.
   </footer>
 
+  <!-- Модальное окно для входа по телефону -->
+  {% if not user.is_authenticated %}
+  <div id="phoneLoginModal" class="phone-login-modal">
+    <div class="modal-content w-full max-w-md mx-4">
+      <div class="flex justify-between items-center border-b p-4">
+        <h2 class="text-xl font-semibold">Вход</h2>
+        <button type="button" class="text-gray-400 hover:text-gray-500" id="closeModal">
+          <span class="text-2xl">&times;</span>
+        </button>
+      </div>
+      
+      <div class="p-6">
+        <h3 class="text-lg font-medium mb-4">Введите номер телефона</h3>
+        
+        <form method="post" action="{% url 'accounts:login' %}">
+          {% csrf_token %}
+          <div class="mb-6">
+            <input type="tel" name="phone" id="phoneInput" 
+                  class="w-full border border-gray-300 rounded-lg p-3 text-lg" 
+                  placeholder="+992 __ __ __ __" 
+                  required>
+          </div>
+          
+          <button type="submit" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-3 rounded-lg transition">
+            Войти
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const modal = document.getElementById('phoneLoginModal');
+      const openModalBtn = document.getElementById('openPhoneLoginModal');
+      const closeModalBtn = document.getElementById('closeModal');
+      
+      // Открытие модального окна
+      if (openModalBtn) {
+        openModalBtn.addEventListener('click', function() {
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        });
+      }
+      
+      // Закрытие модального окна при клике на крестик
+      if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', function() {
+          modal.classList.remove('active');
+          document.body.style.overflow = '';
+        });
+      }
+      
+      // Закрытие модального окна при клике на фон
+      if (modal) {
+        modal.addEventListener('click', function(event) {
+          if (event.target === modal) {
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+          }
+        });
+      }
+      
+      // Форматирование номера телефона
+      const phoneInput = document.getElementById('phoneInput');
+      if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+          let value = e.target.value.replace(/\D/g, '');
+          if (value.startsWith('992')) {
+            // Форматируем как +992 XX XXX XX XX
+            if (value.length > 3) {
+              value = '+' + value.substring(0, 3) + ' ' + value.substring(3);
+            }
+            if (value.length > 7) {
+              value = value.substring(0, 7) + ' ' + value.substring(7);
+            }
+            if (value.length > 11) {
+              value = value.substring(0, 11) + ' ' + value.substring(11);
+            }
+            if (value.length > 14) {
+              value = value.substring(0, 14) + ' ' + value.substring(14, 16);
+            }
+          } else if (value) {
+            // Добавляем код страны, если пользователь его не ввёл
+            value = '+992' + value;
+          } else {
+            value = '+992 ';
+          }
+          
+          e.target.value = value;
+        });
+        
+        // Установка фокуса на поле ввода при открытии модального окна
+        if (openModalBtn) {
+          openModalBtn.addEventListener('click', function() {
+            setTimeout(() => {
+              phoneInput.focus();
+            }, 300);
+          });
+        }
+      }
+    });
+  </script>
+  {% endif %}
+  
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

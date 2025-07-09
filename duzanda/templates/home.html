@@ -23,7 +23,7 @@
               <span class="text-xs text-red-600 font-bold bg-red-100 rounded px-2 py-0.5">-{{ product.discount_percent }}%</span>
             {% endif %}
           </div>
-          <form method="post" action="{% url 'products:add_to_cart' product.pk %}" class="mt-auto">
+          <form method="post" action="{% url 'cart:add_to_cart' product.pk %}" class="mt-auto">
             {% csrf_token %}
             <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">В корзину</button>
           </form>

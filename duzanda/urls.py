@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.shortcuts import redirect
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -30,6 +31,7 @@ urlpatterns = [
     # Твоя домашняя страница
     path('', views.home, name='home'),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('master/', views.master_landing, name='master_landing'),
 
 ]
 

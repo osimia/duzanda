@@ -10,7 +10,6 @@ urlpatterns = [
     path('<int:pk>/', views.product_detail, name='product_detail'),
     path('<int:pk>/edit/', views.product_edit, name='product_edit'),
     path('<int:pk>/delete/', views.product_delete, name='product_delete'),
-    path('<int:pk>/add-to-cart/', views.add_to_cart, name='add_to_cart'),
     
     # Диагностические URL (только для администраторов)
     path('debug/check-s3-images/', views_debug.check_s3_images, name='check_s3_images'),

@@ -2,54 +2,338 @@
 {% load widget_tweaks %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white shadow-md rounded-lg p-8">
-  <h1 class="text-2xl font-bold mb-6 text-blue-600">Мой профиль</h1>
-
-  {% if user.role == 'master' %}
-    <a href="{% url 'accounts:my_products' %}" class="block mb-4 w-full bg-green-600 text-white font-semibold py-3 rounded-full text-center hover:bg-green-700 transition">Мои товары</a>
-    <a href="{% url 'products:product_add' %}" class="block mb-4 w-full bg-blue-600 text-white font-semibold py-3 rounded-full text-center hover:bg-blue-700 transition">Добавить товар</a>
-  {% endif %}
-
-  {% if messages %}
-    {% for message in messages %}
-      <div class="mb-4 p-3 rounded text-white {% if message.tags == 'success' %}bg-green-500{% else %}bg-red-500{% endif %}">
-        {{ message }}
+<!-- Модальное окно редактирования профиля -->
+<div id="editProfileModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <!-- Затемнение фона -->
+    <div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+    
+    <!-- Модальное окно -->
+    <div class="bg-white rounded-lg max-w-2xl w-full mx-auto z-10 relative">
+      <div class="flex justify-between items-center border-b p-4">
+        <h2 class="text-xl font-semibold">Редактирование профиля</h2>
+        <button type="button" class="text-gray-400 hover:text-gray-500" id="closeModal">
+          <span class="text-2xl">&times;</span>
+        </button>
       </div>
-    {% endfor %}
-  {% endif %}
-
-  <form method="post" enctype="multipart/form-data" class="space-y-4">
-    {% csrf_token %}
-
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Имя пользователя</label>
-      {{ form.username|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
+      
+      <div class="p-6">
+        <form id="profileEditForm" method="post" enctype="multipart/form-data" class="space-y-6">
+          {% csrf_token %}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block mb-1 font-medium text-gray-700">Имя пользователя</label>
+              {{ form.username|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+              <span class="text-red-500 text-xs hidden" id="error-username"></span>
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-gray-700">Email</label>
+              {{ form.email|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+              <span class="text-red-500 text-xs hidden" id="error-email"></span>
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-gray-700">Телефон</label>
+              {{ form.phone|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+              <span class="text-red-500 text-xs hidden" id="error-phone"></span>
+            </div>
+            <div>
+              <label class="block mb-1 font-medium text-gray-700">Аватар</label>
+              {{ form.avatar|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+              <span class="text-red-500 text-xs hidden" id="error-avatar"></span>
+            </div>
+          </div>
+          <div>
+            <label class="block mb-1 font-medium text-gray-700">Адрес</label>
+            {{ form.address|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            <span class="text-red-500 text-xs hidden" id="error-address"></span>
+          </div>
+          <div class="flex items-center gap-4">
+            <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+              💾 Сохранить
+            </button>
+            <button type="button" id="cancelEdit" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition flex items-center justify-center">
+              ❌ Отмена
+            </button>
+          </div>
+          <div id="formAlert" class="hidden p-4 rounded-lg"></div>
+        </form>
+      </div>
     </div>
-
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Email</label>
-      {{ form.email|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
-    </div>
-
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Телефон</label>
-      {{ form.phone|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
-    </div>
-
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Адрес</label>
-      {{ form.address|add_class:"w-full border border-gray-300 rounded px-4 py-2" }}
-    </div>
-
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Аватар</label>
-      {{ form.avatar }}
-    </div>
-
-    <button type="submit"
-            class="w-full bg-blue-600 text-white font-semibold py-3 rounded-full hover:bg-blue-700 transition">
-      Сохранить изменения
-    </button>
-  </form>
+  </div>
 </div>
+
+<div class="max-w-6xl mx-auto px-4">
+  <div class="bg-gradient-to-r from-white via-gray-50 to-white rounded-2xl p-8 shadow-lg">
+
+    <!-- Шапка профиля -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
+      <div class="flex items-center gap-4">
+        <!-- Аватар с кольцом -->
+        <div class="relative w-24 h-24">
+          <div class="absolute inset-0 rounded-full ring-4 ring-blue-200"></div>
+          {% if user.avatar %}
+            <div class="user-avatar-container w-full h-full">
+              <img src="{{ user.avatar.url }}" alt="Аватар пользователя" class="w-full h-full rounded-full object-cover">
+            </div>
+          {% else %}
+            <div class="user-avatar-container w-full h-full rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-4xl font-bold">
+              {{ user.username|first|upper }}
+            </div>
+          {% endif %}
+        </div>
+        <div>
+          <h1 class="user-username text-2xl font-bold text-gray-800">{{ user.username }}</h1>
+          <p class="user-phone text-gray-500">{{ user.phone|default:"Номер не указан" }}</p>
+          <p class="text-sm text-gray-400">На сайте с {{ user.date_joined|date:"d.m.Y" }}</p>
+        </div>
+      </div>
+        <div class="flex gap-3 flex-wrap">
+          <a href="{% url 'accounts:logout' %}"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-700 hover:shadow-md transition-all duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+            </svg>
+            Выйти
+          </a>
+        </div>
+
+
+
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- Левая колонка -->
+      <div class="md:col-span-1">
+        <div class="bg-white rounded-2xl shadow p-6 space-y-4">
+          <ul class="space-y-3">
+            <li>
+              <a href="{% url 'orders:my_orders' %}" class="flex items-center text-gray-700 hover:text-blue-600 font-medium">
+                📦 <span class="ml-3">Мои заказы</span>
+              </a>
+            </li>
+            {% if user.is_master %}
+            <li>
+              <a href="{% url 'products:product_add' %}" class="flex items-center text-gray-700 hover:text-green-600 font-medium">
+                ➕ <span class="ml-3">Добавить товар</span>
+              </a>
+            </li>
+            <li>
+              <a href="{% url 'accounts:my_products' %}" class="flex items-center text-gray-700 hover:text-yellow-600 font-medium">
+                🏪 <span class="ml-3">Мои товары</span>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Правая колонка -->
+      <div class="md:col-span-2 space-y-8">
+        <!-- Блок информации о пользователе -->
+        <div class="bg-white rounded-2xl shadow p-6">
+          <h2 class="text-xl font-semibold mb-6 text-gray-800 pb-3 border-b">Информация о профиле</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <p class="text-sm text-gray-500">Имя пользователя</p>
+              <p class="user-username font-medium">{{ user.username }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500">Email</p>
+              <p class="user-email font-medium">{{ user.email|default:"Не указан" }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500">Телефон</p>
+              <p class="user-phone font-medium">{{ user.phone|default:"Не указан" }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-500">Адрес</p>
+              <p class="user-address font-medium">{{ user.address|default:"Не указан" }}</p>
+            </div>
+          </div>
+          
+          <div class="mt-6 flex justify-center">
+            <button id="mobileEditButton" class="md:hidden bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+              ✏️ Редактировать профиль
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Получаем элементы модального окна
+  const modal = document.getElementById('editProfileModal');
+  const modalBackdrop = document.getElementById('modalBackdrop');
+  const closeModalBtn = document.getElementById('closeModal');
+  const openModalBtn = document.getElementById('openEditProfileModal');
+  const mobileEditBtn = document.getElementById('mobileEditButton');
+  
+  // Функция открытия модального окна
+  function openModal() {
+    modal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden'); // Предотвращение прокрутки страницы
+  }
+  
+  // Функция закрытия модального окна
+  function closeModal() {
+    modal.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden');
+  }
+  
+  // Обработчики событий для кнопок
+  if (openModalBtn) {
+    openModalBtn.addEventListener('click', openModal);
+  }
+  
+  if (mobileEditBtn) {
+    mobileEditBtn.addEventListener('click', openModal);
+  }
+  
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', closeModal);
+  }
+  
+  // Закрытие при клике на фон
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener('click', closeModal);
+  }
+  
+  // Закрытие при нажатии Escape
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+      closeModal();
+    }
+  });
+
+  // Предотвращение закрытия при клике на само модальное окно
+  modal.querySelector('.bg-white').addEventListener('click', function(event) {
+    event.stopPropagation();
+  });
+
+  // Добавление кнопки Отмена
+  const cancelBtn = document.getElementById('cancelEdit');
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeModal);
+  }
+
+  // Функция для обработки AJAX отправки формы
+  const profileEditForm = document.getElementById('profileEditForm');
+  if (profileEditForm) {
+    profileEditForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(profileEditForm);
+      const formAlert = document.getElementById('formAlert');
+      
+      // Скрываем предыдущие сообщения об ошибках
+      document.querySelectorAll('#profileEditForm .text-red-500').forEach(el => {
+        el.classList.add('hidden');
+        el.textContent = '';
+      });
+      
+      // Отправка данных через AJAX
+      fetch('{% url "accounts:update_profile_ajax" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Показываем успешное сообщение
+          formAlert.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+          formAlert.classList.add('bg-green-100', 'text-green-700');
+          formAlert.textContent = data.message;
+          
+          // Обновляем данные на странице без перезагрузки
+          updateProfileDisplay(data.user);
+          
+          // Закрываем модальное окно через 1.5 секунды
+          setTimeout(() => {
+            closeModal();
+            formAlert.classList.add('hidden');
+          }, 1500);
+        } else {
+          // Показываем ошибки
+          formAlert.classList.remove('hidden', 'bg-green-100', 'text-green-700');
+          formAlert.classList.add('bg-red-100', 'text-red-700');
+          formAlert.textContent = 'Пожалуйста, исправьте ошибки в форме.';
+          
+          // Разбираем ошибки и показываем их рядом с полями
+          const errors = JSON.parse(data.errors);
+          for (const [fieldName, errorList] of Object.entries(errors)) {
+            const errorSpan = document.getElementById(`error-${fieldName}`);
+            if (errorSpan) {
+              errorSpan.textContent = errorList[0].message;
+              errorSpan.classList.remove('hidden');
+            }
+          }
+        }
+      })
+      .catch(error => {
+        // Обработка ошибок сети
+        formAlert.classList.remove('hidden', 'bg-green-100', 'text-green-700');
+        formAlert.classList.add('bg-red-100', 'text-red-700');
+        formAlert.textContent = 'Произошла ошибка при отправке формы. Пожалуйста, попробуйте снова позже.';
+        console.error('Error:', error);
+      });
+    });
+  }
+
+  // Функция для обновления данных на странице
+  function updateProfileDisplay(user) {
+    // Обновляем имя пользователя
+    const usernameElements = document.querySelectorAll('.user-username');
+    usernameElements.forEach(el => {
+      el.textContent = user.username;
+    });
+    
+    // Обновляем телефон
+    const phoneElements = document.querySelectorAll('.user-phone');
+    phoneElements.forEach(el => {
+      el.textContent = user.phone;
+    });
+    
+    // Обновляем email
+    const emailElements = document.querySelectorAll('.user-email');
+    emailElements.forEach(el => {
+      el.textContent = user.email;
+    });
+    
+    // Обновляем адрес
+    const addressElements = document.querySelectorAll('.user-address');
+    addressElements.forEach(el => {
+      el.textContent = user.address;
+    });
+    
+    // Обновляем аватар, если он изменился
+    if (user.avatar_url) {
+      const avatarContainers = document.querySelectorAll('.user-avatar-container');
+      avatarContainers.forEach(container => {
+        // Удаляем существующий аватар
+        container.innerHTML = '';
+        
+        // Создаем новый элемент img для аватара
+        const img = document.createElement('img');
+        img.src = user.avatar_url;
+        img.alt = 'Аватар пользователя';
+        img.className = 'w-full h-full rounded-full object-cover';
+        
+        // Добавляем изображение в контейнер
+        container.appendChild(img);
+      });
+    }
+  }
+});
+</script>
 {% endblock %}

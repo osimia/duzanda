@@ -49,7 +49,7 @@
           <a href="{% url 'products:product_detail' product.pk %}"
              class="text-blue-600 text-sm hover:underline mb-2">Подробнее</a>
 
-          <form method="post" action="{% url 'products:add_to_cart' product.pk %}" class="mt-auto">
+          <form method="post" action="{% url 'cart:add_to_cart' product.pk %}" class="mt-auto">
             {% csrf_token %}
             <button type="submit"
                     class="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700 transition">

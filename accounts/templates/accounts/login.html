@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="max-w-md mx-auto bg-white shadow-md rounded-lg p-8">
-  <h1 class="text-2xl font-bold mb-6 text-blue-600">Войти</h1>
+  <h1 class="text-2xl font-bold mb-6 text-blue-600">{% if is_master %}Вход для мастеров{% else %}Войти{% endif %}</h1>
 
   {% if messages %}
     {% for message in messages %}
@@ -13,29 +13,47 @@
     {% endfor %}
   {% endif %}
 
+  <!-- Убрали переключатель типов входа, теперь логика определяется автоматически:
+       - для мастеров (is_master=True): только по логину/паролю
+       - для покупателей (is_master=False): только по телефону 
+  -->
+
   <form method="post" class="space-y-4">
     {% csrf_token %}
 
-    <!-- Username -->
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Имя пользователя</label>
-      {{ form.username|add_class:"w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" }}
-    </div>
-
-    <!-- Password -->
-    <div>
-      <label class="block mb-1 font-semibold text-gray-700">Пароль</label>
-      {{ form.password|add_class:"w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" }}
-    </div>
+    {% if login_type == 'phone' %}
+      <!-- Форма входа по телефону -->
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700">Номер телефона</label>
+        {{ form.phone|add_class:"w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" }}
+        <p class="text-sm text-gray-600 mt-1">Введите ваш номер телефона. Если у вас еще нет аккаунта, он будет создан автоматически.</p>
+      </div>
+    {% else %}
+      <!-- Форма входа по логину и паролю -->
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700">Имя пользователя</label>
+        {{ form.username|add_class:"w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" }}
+      </div>
+      <div>
+        <label class="block mb-1 font-semibold text-gray-700">Пароль</label>
+        {{ form.password|add_class:"w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400" }}
+      </div>
+    {% endif %}
 
     <button type="submit"
             class="w-full bg-blue-600 text-white font-semibold py-3 rounded-full hover:bg-blue-700 transition">
-      Войти
+      {% if login_type == 'phone' %}Войти по телефону{% else %}Войти{% endif %}
     </button>
 
+    {% if is_master %}
     <p class="text-sm mt-4 text-center">
-      Нет аккаунта? <a href="{% url 'accounts:register' %}" class="text-blue-600 hover:underline">Регистрация</a>
+      Еще нет аккаунта? <a href="{% url 'accounts:master_register' %}" class="text-blue-600 hover:underline">Регистрация для мастеров</a>
     </p>
+    {% else %}
+    <p class="text-sm mt-4 text-center">
+      Вы мастер? <a href="/master/" class="text-blue-600 hover:underline">Портал для мастеров</a>
+    </p>
+    {% endif %}
   </form>
 </div>
 {% endblock %}

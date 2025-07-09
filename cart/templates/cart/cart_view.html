@@ -2,49 +2,106 @@
 {% load cart_extras %}
 
 {% block content %}
-<div class="container mx-auto p-4">
-  <h1 class="text-2xl font-bold mb-4">🧺 Моя корзина</h1>
+<div class="max-w-5xl mx-auto p-4">
+  <!-- Заголовок страницы -->
+  <div class="bg-gradient-to-r from-blue-500 to-blue-700 mb-6 p-6 rounded-lg shadow-lg text-white">
+    <h1 class="text-2xl font-bold">🧺 Моя корзина</h1>
+    <p class="text-blue-100">Управление товарами в корзине и оформление заказа</p>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-4 p-4 rounded-lg shadow-md text-white {% if message.tags == 'success' %}bg-green-500{% else %}bg-red-500{% endif %} border-l-4 {% if message.tags == 'success' %}border-green-700{% else %}border-red-700{% endif %}">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
 
   {% if cart_items %}
-    <table class="min-w-full border">
-      <thead>
-        <tr>
-          <th class="py-2 px-4 border">Товар</th>
-          <th class="py-2 px-4 border">Цена</th>
-          <th class="py-2 px-4 border">Количество</th>
-          <th class="py-2 px-4 border">Сумма</th>
-          <th class="py-2 px-4 border">Действия</th>
-        </tr>
-      </thead>
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+      <table class="min-w-full">
+        <thead>
+          <tr class="border-b">
+            <th class="py-3 px-4 text-left text-gray-700">Товар</th>
+            <th class="py-3 px-4 text-left text-gray-700">Цена</th>
+            <th class="py-3 px-4 text-left text-gray-700">Количество</th>
+            <th class="py-3 px-4 text-left text-gray-700">Сумма</th>
+            <th class="py-3 px-4 text-left text-gray-700">Действия</th>
+          </tr>
+        </thead>
       <tbody>
         {% for item in cart_items %}
-          <tr>
-            <td class="py-2 px-4 border">{{ item.product.name }}</td>
-            <td class="py-2 px-4 border">{{ item.product.price|floatformat:2 }}</td>
-            <td class="py-2 px-4 border">
-              <a href="{% url 'cart:update_quantity' item.pk 'decrease' %}" class="px-2">➖</a>
-              {{ item.quantity }}
-              <a href="{% url 'cart:update_quantity' item.pk 'increase' %}" class="px-2">➕</a>
+          <tr class="border-b hover:bg-gray-50">
+            <td class="py-4 px-4">
+              <div class="flex items-center">
+                {% if item.product.images.first %}
+                <img src="{{ item.product.images.first.get_direct_s3_url }}" alt="{{ item.product.name }}" class="w-12 h-12 object-cover rounded mr-3">
+                {% else %}
+                <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center mr-3">
+                  <span class="text-gray-400">Нет фото</span>
+                </div>
+                {% endif %}
+                <div>
+                  <div class="font-medium">{{ item.product.name }}</div>
+                  {% if item.size %}
+                  <div class="text-xs text-gray-500">Размер: {{ item.size }}</div>
+                  {% endif %}
+                </div>
+              </div>
             </td>
-            <td class="py-2 px-4 border font-semibold">
-              {{ item.product.price|floatformat:2 }} × {{ item.quantity }} = {{ item.product.price|mul:item.quantity|floatformat:2 }} сомони
+            <td class="py-4 px-4 text-gray-700">{{ item.product.price|floatformat:2 }} с.</td>
+            <td class="py-4 px-4">
+              <div class="flex items-center">
+                <a href="{% url 'cart:update_quantity' item.pk 'decrease' %}" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-l">
+                  <span class="text-gray-700">−</span>
+                </a>
+                <span class="w-10 text-center font-medium">{{ item.quantity }}</span>
+                <a href="{% url 'cart:update_quantity' item.pk 'increase' %}" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-r">
+                  <span class="text-gray-700">+</span>
+                </a>
+              </div>
             </td>
-            <td class="py-2 px-4 border">
-              <a href="{% url 'cart:remove_from_cart' item.pk %}" class="text-red-500">Удалить</a>
+            <td class="py-4 px-4 font-semibold">
+              {{ item.product.price|mul:item.quantity|floatformat:2 }} с.
+            </td>
+            <td class="py-4 px-4">
+              <a href="{% url 'cart:remove_from_cart' item.pk %}" class="text-red-500 hover:text-red-700 transition">
+                <span class="inline-flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Удалить
+                </span>
+              </a>
             </td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
 
-    <div class="mt-4 text-xl font-bold">
-      Итого: {{ total|floatformat:2 }} сомони
+    <div class="mt-6 pt-4 border-t flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div>
+        <div class="text-gray-600 text-sm">Итого товаров: {{ cart_items|length }}</div>
+        <div class="text-xl font-bold text-gray-800">Общая сумма: {{ total|floatformat:2 }} сомони</div>
+      </div>
+      
+      <a href="{% url 'orders:checkout' %}" class="bg-green-600 text-white px-6 py-3 rounded-lg inline-block hover:bg-green-700 transition font-semibold text-center">
+        ✅ Оформить заказ
+      </a>
     </div>
-
-    <button class="mt-4 bg-green-600 text-white px-4 py-2 rounded">✅ Оформить заказ</button>
+  </div>
 
   {% else %}
-    <p>Ваша корзина пуста.</p>
+    <div class="bg-white p-8 rounded-lg shadow-md text-center">
+      <div class="w-24 h-24 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+        <span class="text-4xl">🛒</span>
+      </div>
+      <h2 class="text-xl font-semibold mb-2">Ваша корзина пуста</h2>
+      <p class="text-gray-600 mb-6">Добавьте товары в корзину, чтобы оформить заказ</p>
+      <a href="{% url 'products:product_list' %}" class="bg-blue-600 text-white px-6 py-3 rounded-lg inline-block hover:bg-blue-700 transition font-semibold">
+        Перейти в каталог
+      </a>
+    </div>
   {% endif %}
 </div>
 {% endblock %}

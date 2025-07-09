@@ -8,4 +8,5 @@ app_name = 'orders'
 urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('my/', views.my_orders, name='my_orders'),
+    path('find/', views.find_orders, name='find_orders'),
 ]

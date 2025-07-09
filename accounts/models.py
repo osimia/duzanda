@@ -15,3 +15,7 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
+        
+    @property
+    def is_master(self):
+        return self.role == 'master'

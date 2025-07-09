@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-8">
+  <h1 class="text-3xl font-bold mb-6 text-blue-600 text-center">Портал мастеров Duzanda</h1>
+  
+  <p class="text-gray-700 mb-6 text-center">
+    Добро пожаловать в раздел для мастеров! Здесь вы можете зарегистрироваться или войти в свой аккаунт мастера.
+  </p>
+  
+  <div class="flex flex-col sm:flex-row gap-4 justify-center">
+    <a href="{% url 'accounts:master_login' %}" 
+       class="bg-blue-600 text-white font-semibold py-3 px-6 rounded-full hover:bg-blue-700 transition text-center">
+      Войти как мастер
+    </a>
+    <a href="{% url 'accounts:master_register' %}" 
+       class="bg-white text-blue-600 border-2 border-blue-600 font-semibold py-3 px-6 rounded-full hover:bg-blue-50 transition text-center">
+      Зарегистрироваться как мастер
+    </a>
+  </div>
+  
+  <div class="mt-8 border-t pt-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-800">Преимущества для мастеров:</h2>
+    <ul class="list-disc pl-5 space-y-2 text-gray-700">
+      <li>Доступ к тысячам потенциальных клиентов</li>
+      <li>Простое управление заказами</li>
+      <li>Персональный профиль для демонстрации работ</li>
+      <li>Удобные инструменты для взаимодействия с клиентами</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

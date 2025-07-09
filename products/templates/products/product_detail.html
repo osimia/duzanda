@@ -123,7 +123,7 @@
         {% endif %}
       </div>
       <div class="mb-2 text-gray-700 text-base">{{ product.description }}</div>
-      <form method="post" action="{% url 'products:add_to_cart' product.pk %}" class="mt-2">
+      <form method="post" action="{% url 'cart:add_to_cart' product.pk %}" class="mt-2">
         {% csrf_token %}
         {% if sizes %}
           <label for="size-select" class="block mb-2 text-sm text-gray-700">Выберите размер:</label>
