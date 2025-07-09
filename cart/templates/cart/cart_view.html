@@ -18,7 +18,8 @@
   {% endif %}
 
   {% if cart_items %}
-    <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+    <!-- Таблица для десктопов -->
+    <div class="bg-white p-6 rounded-lg shadow-md mb-6 hidden md:block">
       <table class="min-w-full">
         <thead>
           <tr class="border-b">
@@ -29,57 +30,114 @@
             <th class="py-3 px-4 text-left text-gray-700">Действия</th>
           </tr>
         </thead>
-      <tbody>
-        {% for item in cart_items %}
-          <tr class="border-b hover:bg-gray-50">
-            <td class="py-4 px-4">
-              <div class="flex items-center">
-                {% if item.product.images.first %}
-                <img src="{{ item.product.images.first.get_direct_s3_url }}" alt="{{ item.product.name }}" class="w-12 h-12 object-cover rounded mr-3">
-                {% else %}
-                <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center mr-3">
-                  <span class="text-gray-400">Нет фото</span>
-                </div>
-                {% endif %}
-                <div>
-                  <div class="font-medium">{{ item.product.name }}</div>
-                  {% if item.size %}
-                  <div class="text-xs text-gray-500">Размер: {{ item.size }}</div>
+        <tbody>
+          {% for item in cart_items %}
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-4 px-4">
+                <div class="flex items-center">
+                  {% if item.product.images.first %}
+                  <img src="{{ item.product.images.first.get_direct_s3_url }}" alt="{{ item.product.name }}" class="w-12 h-12 object-cover rounded mr-3">
+                  {% else %}
+                  <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center mr-3">
+                    <span class="text-gray-400">Нет фото</span>
+                  </div>
                   {% endif %}
+                  <div>
+                    <div class="font-medium">{{ item.product.name }}</div>
+                    {% if item.size %}
+                    <div class="text-xs text-gray-500">Размер: {{ item.size }}</div>
+                    {% endif %}
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="py-4 px-4 text-gray-700">{{ item.product.price|floatformat:2 }} с.</td>
-            <td class="py-4 px-4">
-              <div class="flex items-center">
-                <a href="{% url 'cart:update_quantity' item.pk 'decrease' %}" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-l">
-                  <span class="text-gray-700">−</span>
+              </td>
+              <td class="py-4 px-4 text-gray-700">{{ item.product.price|floatformat:2 }} с.</td>
+              <td class="py-4 px-4">
+                <div class="flex items-center">
+                  <a href="{% url 'cart:update_quantity' item.pk 'decrease' %}" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-l">
+                    <span class="text-gray-700">−</span>
+                  </a>
+                  <span class="w-10 text-center font-medium">{{ item.quantity }}</span>
+                  <a href="{% url 'cart:update_quantity' item.pk 'increase' %}" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-r">
+                    <span class="text-gray-700">+</span>
+                  </a>
+                </div>
+              </td>
+              <td class="py-4 px-4 font-semibold">
+                {{ item.product.price|mul:item.quantity|floatformat:2 }} с.
+              </td>
+              <td class="py-4 px-4">
+                <a href="{% url 'cart:remove_from_cart' item.pk %}" class="text-red-500 hover:text-red-700 transition">
+                  <span class="inline-flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Удалить
+                  </span>
                 </a>
-                <span class="w-10 text-center font-medium">{{ item.quantity }}</span>
-                <a href="{% url 'cart:update_quantity' item.pk 'increase' %}" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-r">
-                  <span class="text-gray-700">+</span>
-                </a>
-              </div>
-            </td>
-            <td class="py-4 px-4 font-semibold">
-              {{ item.product.price|mul:item.quantity|floatformat:2 }} с.
-            </td>
-            <td class="py-4 px-4">
-              <a href="{% url 'cart:remove_from_cart' item.pk %}" class="text-red-500 hover:text-red-700 transition">
-                <span class="inline-flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                  Удалить
-                </span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Карточки для мобильных -->
+    <div class="md:hidden space-y-4">
+      {% for item in cart_items %}
+        <div class="bg-white p-4 rounded-lg shadow-md">
+          <div class="flex items-start space-x-3 mb-3">
+            {% if item.product.images.first %}
+            <img src="{{ item.product.images.first.get_direct_s3_url }}" alt="{{ item.product.name }}" class="w-16 h-16 object-cover rounded flex-shrink-0">
+            {% else %}
+            <div class="w-16 h-16 bg-gray-100 rounded flex items-center justify-center flex-shrink-0">
+              <span class="text-gray-400 text-xs">Нет фото</span>
+            </div>
+            {% endif %}
+            
+            <div class="flex-grow">
+              <h3 class="font-medium text-gray-900">{{ item.product.name }}</h3>
+              {% if item.size %}
+              <p class="text-xs text-gray-500">Размер: {{ item.size }}</p>
+              {% endif %}
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center mb-2 border-t pt-2">
+            <div class="text-sm text-gray-700">
+              <span>Цена:</span>
+              <span class="font-medium">{{ item.product.price|floatformat:2 }} с.</span>
+            </div>
+            
+            <div class="flex items-center">
+              <a href="{% url 'cart:update_quantity' item.pk 'decrease' %}" class="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-l text-sm">
+                −
               </a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+              <span class="w-8 text-center font-medium">{{ item.quantity }}</span>
+              <a href="{% url 'cart:update_quantity' item.pk 'increase' %}" class="w-7 h-7 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-r text-sm">
+                +
+              </a>
+            </div>
+          </div>
+          
+          <div class="flex justify-between items-center">
+            <div class="text-sm">
+              <span>Итого:</span>
+              <span class="font-bold text-gray-900">{{ item.product.price|mul:item.quantity|floatformat:2 }} с.</span>
+            </div>
+            
+            <a href="{% url 'cart:remove_from_cart' item.pk %}" class="text-red-500 hover:text-red-700 transition text-sm flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Удалить
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
 
-    <div class="mt-6 pt-4 border-t flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+    <!-- Итоговый блок для десктопов -->
+    <div class="mt-6 pt-4 border-t hidden md:flex md:flex-row md:justify-between md:items-center gap-4">
       <div>
         <div class="text-gray-600 text-sm">Итого товаров: {{ cart_items|length }}</div>
         <div class="text-xl font-bold text-gray-800">Общая сумма: {{ total|floatformat:2 }} сомони</div>
@@ -88,6 +146,23 @@
       <a href="{% url 'orders:checkout' %}" class="bg-green-600 text-white px-6 py-3 rounded-lg inline-block hover:bg-green-700 transition font-semibold text-center">
         ✅ Оформить заказ
       </a>
+    </div>
+    
+    <!-- Итоговый блок для мобильных -->
+    <div class="md:hidden mt-4">
+      <div class="bg-white p-4 rounded-lg shadow-md">
+        <div class="flex justify-between items-center mb-3">
+          <span class="text-gray-600 text-sm">Товаров в корзине:</span>
+          <span class="font-medium">{{ cart_items|length }}</span>
+        </div>
+        <div class="flex justify-between items-center mb-4">
+          <span class="font-bold">Итоговая сумма:</span>
+          <span class="text-xl font-bold text-gray-800">{{ total|floatformat:2 }} с.</span>
+        </div>
+        <a href="{% url 'orders:checkout' %}" class="bg-green-600 text-white py-3 rounded-md block hover:bg-green-700 transition font-semibold text-center w-full">
+          ✅ Оформить заказ
+        </a>
+      </div>
     </div>
   </div>
 
