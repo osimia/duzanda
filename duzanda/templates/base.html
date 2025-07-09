@@ -8,6 +8,30 @@
   <link href="{% static 'css/dist/styles.css' %}" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* Общие стили для контейнеров (одинаковые отступы) */
+    .common-container {
+      max-width: 1536px; /* max-w-screen-2xl */
+      padding-left: 1rem;  /* px-4 */
+      padding-right: 1rem; /* px-4 */
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (min-width: 768px) {
+      .common-container {
+        padding-left: 2rem;  /* md:px-8 */
+        padding-right: 2rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .common-container {
+        padding-left: 4rem;  /* lg:px-16 */
+        padding-right: 4rem;
+      }
+    }
+
+    /* Модальное окно */
     .phone-login-modal {
       display: none;
       position: fixed;
@@ -39,9 +63,9 @@
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 min-h-screen flex flex-col">
 
-  <!-- OZON-Header -->
-  <header class="bg-white shadow-sm">
-    <div class="container mx-auto max-w-screen-2xl px-4 md:px-8 lg:px-16 xl:px-30 2xl:px-60 py-4">
+  <!-- Шапка (Header) -->
+  <div class="w-full bg-white shadow-sm">
+    <div class="common-container py-4"> <!-- Одинаковый контейнер -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <!-- Лого + Каталог -->
         <div class="flex items-center gap-4">
@@ -75,18 +99,18 @@
         </div>
       </div>
     </div>
-  </header>
+  </div>
 
-  <!-- Контент -->
+  <!-- Контент (Main) -->
   <main class="flex-1">
-    <div class="container mx-auto max-w-screen-2xl px-4 md:px-8 lg:px-16 xl:px-30 2xl:px-60 py-8">
+    <div class="common-container py-8"> <!-- Одинаковый контейнер -->
       {% block content %}{% endblock %}
     </div>
   </main>
 
-  <!-- Футер -->
+  <!-- Футер (Footer) -->
   <footer class="bg-gray-100 border-t">
-    <div class="container mx-auto max-w-screen-2xl px-4 md:px-8 lg:px-16 xl:px-30 2xl:px-60 py-4 text-center text-xs text-gray-500">
+    <div class="common-container text-center text-xs text-gray-500 py-4">
       &copy; {{ now|date:"Y" }} Duzanda. Все права защищены.
     </div>
   </footer>
@@ -128,7 +152,6 @@
       const openModalBtn = document.getElementById('openPhoneLoginModal');
       const closeModalBtn = document.getElementById('closeModal');
       
-      // Открытие модального окна
       if (openModalBtn) {
         openModalBtn.addEventListener('click', function() {
           modal.classList.add('active');
@@ -136,7 +159,6 @@
         });
       }
       
-      // Закрытие модального окна при клике на крестик
       if (closeModalBtn) {
         closeModalBtn.addEventListener('click', function() {
           modal.classList.remove('active');
@@ -144,7 +166,6 @@
         });
       }
       
-      // Закрытие модального окна при клике на фон
       if (modal) {
         modal.addEventListener('click', function(event) {
           if (event.target === modal) {
@@ -154,36 +175,23 @@
         });
       }
       
-      // Форматирование номера телефона
       const phoneInput = document.getElementById('phoneInput');
       if (phoneInput) {
         phoneInput.addEventListener('input', function(e) {
           let value = e.target.value.replace(/\D/g, '');
           if (value.startsWith('992')) {
-            // Форматируем как +992 XX XXX XX XX
-            if (value.length > 3) {
-              value = '+' + value.substring(0, 3) + ' ' + value.substring(3);
-            }
-            if (value.length > 7) {
-              value = value.substring(0, 7) + ' ' + value.substring(7);
-            }
-            if (value.length > 11) {
-              value = value.substring(0, 11) + ' ' + value.substring(11);
-            }
-            if (value.length > 14) {
-              value = value.substring(0, 14) + ' ' + value.substring(14, 16);
-            }
+            if (value.length > 3) value = '+' + value.substring(0, 3) + ' ' + value.substring(3);
+            if (value.length > 7) value = value.substring(0, 7) + ' ' + value.substring(7);
+            if (value.length > 11) value = value.substring(0, 11) + ' ' + value.substring(11);
+            if (value.length > 14) value = value.substring(0, 14) + ' ' + value.substring(14, 16);
           } else if (value) {
-            // Добавляем код страны, если пользователь его не ввёл
             value = '+992' + value;
           } else {
             value = '+992 ';
           }
-          
           e.target.value = value;
         });
         
-        // Установка фокуса на поле ввода при открытии модального окна
         if (openModalBtn) {
           openModalBtn.addEventListener('click', function() {
             setTimeout(() => {
