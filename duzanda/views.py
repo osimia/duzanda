@@ -16,6 +16,5 @@ def master_landing(request):
 
 def home(request):
     products = Product.objects.order_by('-created_at')[:8]
-    categories = Category.objects.all()
-    return render(request, 'home.html', {'products': products, 'categories': categories})
+    return render(request, 'home.html', {'products': products})
 

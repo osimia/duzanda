@@ -9,53 +9,53 @@
     <div id="modalBackdrop" class="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
     
     <!-- Модальное окно -->
-    <div class="bg-white rounded-lg max-w-2xl w-full mx-auto z-10 relative">
-      <div class="flex justify-between items-center border-b p-4">
-        <h2 class="text-xl font-semibold">Редактирование профиля</h2>
-        <button type="button" class="text-gray-400 hover:text-gray-500" id="closeModal">
+    <div class="bg-white rounded-lg max-w-xl w-full mx-auto z-10 relative shadow-xl">
+      <div class="flex justify-between items-center border-b p-4 bg-gray-50 rounded-t-lg">
+        <h2 class="text-xl font-semibold text-gray-800">Редактирование профиля</h2>
+        <button type="button" class="text-gray-400 hover:text-gray-500 focus:outline-none" id="closeModal">
           <span class="text-2xl">&times;</span>
         </button>
       </div>
       
-      <div class="p-6">
-        <form id="profileEditForm" method="post" enctype="multipart/form-data" class="space-y-6">
+      <div class="p-5">
+        <form id="profileEditForm" method="post" enctype="multipart/form-data" class="space-y-4">
           {% csrf_token %}
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block mb-1 font-medium text-gray-700">Имя пользователя</label>
-              {{ form.username|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-              <span class="text-red-500 text-xs hidden" id="error-username"></span>
+              <label class="block mb-1 text-sm font-medium text-gray-700">Имя пользователя</label>
+              {{ form.username|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm" }}
+              <span class="text-red-500 text-xs hidden mt-1" id="error-username"></span>
             </div>
             <div>
-              <label class="block mb-1 font-medium text-gray-700">Email</label>
-              {{ form.email|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-              <span class="text-red-500 text-xs hidden" id="error-email"></span>
+              <label class="block mb-1 text-sm font-medium text-gray-700">Email</label>
+              {{ form.email|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm" }}
+              <span class="text-red-500 text-xs hidden mt-1" id="error-email"></span>
             </div>
             <div>
-              <label class="block mb-1 font-medium text-gray-700">Телефон</label>
-              {{ form.phone|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-              <span class="text-red-500 text-xs hidden" id="error-phone"></span>
+              <label class="block mb-1 text-sm font-medium text-gray-700">Телефон</label>
+              {{ form.phone|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm" }}
+              <span class="text-red-500 text-xs hidden mt-1" id="error-phone"></span>
             </div>
             <div>
-              <label class="block mb-1 font-medium text-gray-700">Аватар</label>
-              {{ form.avatar|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-              <span class="text-red-500 text-xs hidden" id="error-avatar"></span>
+              <label class="block mb-1 text-sm font-medium text-gray-700">Аватар</label>
+              {{ form.avatar|add_class:"w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm" }}
+              <span class="text-red-500 text-xs hidden mt-1" id="error-avatar"></span>
             </div>
           </div>
           <div>
-            <label class="block mb-1 font-medium text-gray-700">Адрес</label>
-            {{ form.address|add_class:"w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" }}
-            <span class="text-red-500 text-xs hidden" id="error-address"></span>
+            <label class="block mb-1 text-xs font-medium text-gray-700">Адрес</label>
+            {{ form.address|add_class:"w-full border border-gray-300 rounded-md px-2 py-0 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 shadow-sm h-6" }}
+            <span class="text-red-500 text-xs hidden mt-1" id="error-address"></span>
           </div>
-          <div class="flex items-center gap-4">
-            <button type="submit" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
+          <div class="grid grid-cols-2 gap-4 mt-4">
+            <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 w-full">
               💾 Сохранить
             </button>
-            <button type="button" id="cancelEdit" class="flex-1 bg-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-400 transition flex items-center justify-center">
+            <button type="button" id="cancelEdit" class="bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 w-full">
               ❌ Отмена
             </button>
           </div>
-          <div id="formAlert" class="hidden p-4 rounded-lg"></div>
+          <div id="formAlert" class="hidden p-3 rounded-md text-sm font-medium"></div>
         </form>
       </div>
     </div>
